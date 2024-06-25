@@ -2,10 +2,15 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import pandas as pd
 from flask_cors import CORS
 from flask_oauthlib.client import OAuth
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
-app.secret_key = 'your_secret_key'
+app.secret_key = os.getenv('SECRET_KEY')
 
 # Load data
 data = pd.read_excel('data/data.xls', engine='xlrd')
@@ -14,8 +19,8 @@ data = pd.read_excel('data/data.xls', engine='xlrd')
 oauth = OAuth(app)
 google = oauth.remote_app(
     'google',
-    consumer_key='208339360891-trcrir5gqm7iki667sls02ej6om69mps.apps.googleusercontent.com',
-    consumer_secret='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',
+    consumer_key=os.getenv('GOOGLE_CONSUMER_KEY'),
+    consumer_secret=os.getenv('GOOGLE_CONSUMER_SECRET'),
     request_token_params={
         'scope': 'email',
     },
