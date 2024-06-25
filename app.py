@@ -1,19 +1,18 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import pandas as pd
 from flask_cors import CORS
 from flask_oauthlib.client import OAuth
 from dotenv import load_dotenv
 import os
 
-# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 app.secret_key = os.getenv('SECRET_KEY')
-
-# Load data
-data = pd.read_excel('data/data.xls', engine='xlrd')
+UPLOAD_FOLDER = 'data'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = {'xls'}
 
 # OAuth setup
 oauth = OAuth(app)
@@ -31,10 +30,16 @@ google = oauth.remote_app(
     authorize_url='https://accounts.google.com/o/oauth2/auth',
 )
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/')
 def index():
     if 'google_token' in session:
         user_info = google.get('userinfo')
+        if data.empty:
+            return render_template('index.html', data=None)
+        
         page = request.args.get('page', 1, type=int)
         per_page = 50  # Number of rows per page
         sort_by = request.args.get('sort_by', None)
@@ -50,7 +55,11 @@ def index():
         data_subset = data_sorted.iloc[start:end].to_dict(orient='records')
         
         return render_template('index.html', data=data_subset, page=page, total=total, per_page=per_page, sort_by=sort_by, sort_order=sort_order)
-    return redirect(url_for('login'))
+    return redirect(url_for('google_signin'))
+
+@app.route('/google-signin')
+def google_signin():
+    return render_template('signin.html')
 
 @app.route('/login')
 def login():
@@ -76,5 +85,35 @@ def authorized():
 def get_google_oauth_token():
     return session.get('google_token')
 
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'google_token' not in session:
+        return redirect(url_for('login'))
+    
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    
+    file = request.files['file']
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    
+    if file and allowed_file(file.filename):
+        filename = 'data.xls'  # Save as a fixed name
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        
+        global data
+        data = pd.read_excel(file_path, engine='xlrd')
+        
+        return redirect(url_for('index'))
+    
+    flash('Invalid file format')
+    return redirect(request.url)
+
 if __name__ == '__main__':
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+    data = pd.DataFrame()  # Initialize an empty DataFrame
     app.run(debug=True)
