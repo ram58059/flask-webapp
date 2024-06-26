@@ -29,7 +29,6 @@ google = oauth.remote_app(
     authorize_url='https://accounts.google.com/o/oauth2/auth',
 )
 
-# Sample data initialization
 data = pd.DataFrame()
 
 def allowed_file(filename):
