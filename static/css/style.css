@@ -1,0 +1,121 @@
+/* body {
+    padding-top: 20px;
+}
+
+.table {
+    margin-top: 20px;
+} */
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #F7F9F2;
+}
+.form-group, .btn-upload {
+    display: inline-block;
+    vertical-align: middle;
+}
+.btn-upload {
+    margin-left: 10px;
+}
+.table-container {
+    overflow-x: auto;
+}
+table {
+    table-layout: fixed;
+    width: 100%;
+    border: 1px solid #dee2e6;
+}
+th, td {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    padding: 8px;
+}
+th {
+    position: relative;
+}
+th .sort-button {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #007bff;
+}
+th .column-name {
+    display: inline-block;
+    max-width: calc(100% - 30px); /* Adjust the width as necessary */
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+.pagination-row {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+.pagination-controls {
+    display: flex;
+    align-items: center;
+}
+.pagination-controls .btn-prev,
+.pagination-controls .btn-next {
+    margin-right: 10px;
+}
+.center-pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    max-width: 200px; /* Maximum width for the center controls */
+    margin: 0 auto; /* Center the controls */
+}
+.pagination-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+.pagination-container .page-navigation input {
+    width: 70px; /* Increased width for page input */
+    margin-left: 5px;
+    margin-right: 5px;            
+    text-align: center; /* Center text in input */
+}
+th.resizable {
+    overflow: visible;
+}
+th.resizable .resize-handle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: col-resize;
+    background-color: #dee2e6;
+}
+.search-container {
+    margin-bottom: 20px;
+}
+.search-container .dropdown {
+    display: inline-block;
+}
+.search-container .search-box {
+    display: inline-block;
+    margin-left: 10px;
+}
+.search-container .btn-search {
+    margin-left: 10px;
+}
+.search-container .btn-clear-search {
+    margin-left: 10px;
+}
+.action-buttons {
+    float: right;
+}
