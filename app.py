@@ -8,7 +8,6 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
 app.secret_key = os.getenv('SECRET_KEY')
 UPLOAD_FOLDER = 'data'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -30,13 +29,15 @@ google = oauth.remote_app(
     authorize_url='https://accounts.google.com/o/oauth2/auth',
 )
 
+# Sample data initialization
+data = pd.DataFrame()
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 def index():
     if 'google_token' in session:
-        user_info = google.get('userinfo')
         if data.empty:
             return render_template('index.html', data=None)
         
@@ -44,18 +45,29 @@ def index():
         per_page = 50  # Number of rows per page
         sort_by = request.args.get('sort_by', None)
         sort_order = request.args.get('sort_order', 'asc')
+        search_column = request.args.get('search_column', None)
+        search_query = request.args.get('search_query', '')
+        if search_query:
+            data_filtered = data[data[search_column].astype(str).str.contains(search_query, case=False, na=False)]
+        else:
+            data_filtered = data
 
-        data_sorted = data
         if sort_by:
-            data_sorted = data.sort_values(by=sort_by, ascending=(sort_order == 'asc'))
-
-        total = len(data_sorted)
+            data_filtered = data_filtered.sort_values(by=sort_by, ascending=(sort_order == 'asc'))
+        
+        total = len(data_filtered) - 1
         start = (page - 1) * per_page
         end = start + per_page
-        data_subset = data_sorted.iloc[start:end].to_dict(orient='records')
         
-        return render_template('index.html', data=data_subset, page=page, total=total, per_page=per_page, sort_by=sort_by, sort_order=sort_order)
+        if end > total:
+            end = total
+        
+        data_subset = data_filtered.iloc[start:end].to_dict(orient='records')
+        current_rows_per_page = end - start
+        
+        return render_template('index.html', current_rows_per_page=current_rows_per_page, data=data_subset, page=page, total=total, per_page=per_page, sort_by=sort_by, sort_order=sort_order, search_column=search_column, search_query=search_query)
     return redirect(url_for('google_signin'))
+
 
 @app.route('/google-signin')
 def google_signin():
@@ -107,13 +119,22 @@ def upload_file():
         global data
         data = pd.read_excel(file_path, engine='xlrd')
         
+        # Clear search parameters on file upload
+        session.pop('search_column', None)
+        session.pop('search_query', None)
+        
         return redirect(url_for('index'))
     
     flash('Invalid file format')
     return redirect(request.url)
 
+@app.route('/clear-data')
+def clear_data():
+    global data
+    data = pd.DataFrame()  # Clear data
+    return redirect(url_for('index'))
+
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
-    data = pd.DataFrame()  # Initialize an empty DataFrame
     app.run(debug=True)

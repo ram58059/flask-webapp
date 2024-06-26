@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login to Webapp</title>
+    <title>Flask Webapp</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
+            background-color: #F7F9F2;
         }
         .form-group, .btn-upload {
             display: inline-block;
@@ -42,20 +43,50 @@
             cursor: pointer;
             color: #007bff;
         }
+        th .column-name {
+            display: inline-block;
+            max-width: calc(100% - 30px); /* Adjust the width as necessary */
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
         .pagination-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-top: 20px;
         }
-        .pagination-container .page-navigation {
+        .pagination-row {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pagination-controls {
             display: flex;
             align-items: center;
         }
+        .pagination-controls .btn-prev,
+        .pagination-controls .btn-next {
+            margin-right: 10px;
+        }
+        .center-pagination-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            max-width: 200px; /* Maximum width for the center controls */
+            margin: 0 auto; /* Center the controls */
+        }
+        .pagination-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
         .pagination-container .page-navigation input {
-            width: 50px;
+            width: 70px; /* Increased width for page input */
             margin-left: 5px;
-            margin-right: 5px;
+            margin-right: 5px;            
+            text-align: center; /* Center text in input */
         }
         th.resizable {
             overflow: visible;
@@ -69,19 +100,86 @@
             cursor: col-resize;
             background-color: #dee2e6;
         }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .search-container .dropdown {
+            display: inline-block;
+        }
+        .search-container .search-box {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .search-container .btn-search {
+            margin-left: 10px;
+        }
+        .search-container .btn-clear-search {
+            margin-left: 10px;
+        }
+        .action-buttons {
+            float: right;
+        }
     </style>
     <script>
         function toggleSort(button, col) {
-            const currentSymbol = button.innerHTML.trim();
+            const currentSymbol = button.textContent.trim();
             const newOrder = currentSymbol === '↑' ? 'desc' : 'asc';
             button.setAttribute('data-order', newOrder);
             button.innerHTML = newOrder === 'asc' ? '↑' : '↓';
-            const url = "{{ url_for('index', sort_by='') }}" + col + "&sort_order=" + newOrder;
+            let url = "{{ url_for('index') }}" + "?sort_by=" + col + "&sort_order=" + newOrder;
+            const searchColumn = document.getElementById('search-column').value;
+            const searchQuery = document.getElementById('search-box').value;
+            const page = {{ page }};
+            
+            if (searchColumn && searchQuery) {
+                url += "&search_column=" + searchColumn + "&search_query=" + searchQuery + "&page=" + page;
+            } else {
+                url += "&page=" + page;
+            }
+            
+            window.location.href = url;
+        }
+        
+        function goToPage(page) {
+            let url = "{{ url_for('index') }}";
+            const searchColumn = document.getElementById('search-column').value;
+            const searchQuery = document.getElementById('search-box').value;
+            const totalPages = {{ (total // per_page) + 1 if total else 0 }};
+
+            if (page < 1) {
+                page = 1;
+            } else if (page > totalPages) {
+                page = totalPages;
+            }
+
+            if (searchColumn && searchQuery) {
+                url += `?search_column=${searchColumn}&search_query=${searchQuery}&page=${page}`;
+            } else if (page > 1) {
+                url += `?page=${page}`;
+            }
+
             window.location.href = url;
         }
 
-        function goToPage(page) {
-            const url = "{{ url_for('index', page='') }}" + page;
+        function confirmSearch() {
+            const searchColumn = document.getElementById('search-column').value;
+            const searchQuery = document.getElementById('search-box').value;
+            const url = "{{ url_for('index') }}";
+
+            if (searchColumn && searchQuery) {
+                window.location.href = `${url}?search_column=${searchColumn}&search_query=${searchQuery}`;
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        function clearSearch() {
+            const url = "{{ url_for('index') }}";
+            window.location.href = url;
+        }
+
+        function clearData() {
+            const url = "{{ url_for('clear_data') }}";
             window.location.href = url;
         }
 
@@ -118,25 +216,69 @@
         {% if 'google_token' in session %}
             <h2>Upload your Excel file</h2>
             <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="file">Choose Excel file</label>
-                    <input type="file" class="form-control" id="file" name="file" required>
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="file">Choose Excel file</label>
+                            <input type="file" class="form-control" id="file" name="file" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex">
+                            <button type="submit" class="btn btn-primary btn-upload">Upload</button>
+                            <button type="button" class="btn btn-secondary action-buttons ml-3" onclick="clearData()">Clear</button>
+                        </div>
+                    </div>                    
                 </div>
-                <button type="submit" class="btn btn-primary btn-upload">Upload</button>
             </form>
             <hr>
             {% if data %}
-                <h2>Data Visualization</h2>
+                <div class="search-container">
+                    <div class="dropdown">
+                        <select id="search-column" class="form-control">
+                            <option value="">Select Column</option>
+                            {% for col in data[0].keys() %}
+                                <option value="{{ col }}" {% if col == search_column %}selected{% endif %}>{{ col }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="search-box" class="form-control" placeholder="Search" value="{{ search_query }}">
+                    </div>
+                    <button class="btn btn-primary btn-search" onclick="confirmSearch()">Confirm</button>
+                    <button class="btn btn-secondary btn-clear-search" onclick="clearSearch()">Clear Search</button>
+                </div>
+                <div class="pagination-container">
+                    <div class="pagination-row mb-3">
+                        <div class="pagination-controls">
+                            <button class="btn btn-secondary btn-prev" onclick="goToPage({{ page - 1 }})">Prev</button>
+                            <button class="btn btn-secondary btn-next" onclick="goToPage({{ page + 1 }})">Next</button>
+                        </div>
+                        <div class="center-pagination-controls">
+                            <label for="page-input" class="mr-1">Page:</label>
+                            <input type="number" min="1" max="{{ (total // per_page) + 1 }}" id="page-input" class="form-control mr-3" value="{{ page }}">
+                            <button class="btn btn-primary" onclick="goToPage(document.getElementById('page-input').value)">Go</button>
+                        </div>
+                        <div class="pagination-info">
+                            <span>Total Pages: {{ (total // per_page) + 1 }}</span>
+                            <span>Rows per Page: {{ current_rows_per_page }}</span>
+                        </div>
+                    </div>
+                </div>                
                 <div class="table-container">
                     <table class="table table-striped">
                         <thead>
                             <tr>
                                 {% for col in data[0].keys() %}
                                     <th class="resizable">
-                                        {{ col }}
+                                        <span class="column-name">{{ col }}</span>
                                         <span class="sort-button" data-order="asc" onclick="toggleSort(this, '{{ col }}')">
-                                            {% if request.args.get('sort_by') == col and request.args.get('sort_order') == 'desc' %}
-                                                ↓
+                                            {% if sort_by == col %}
+                                                {% if sort_order == 'desc' %}
+                                                    ↓
+                                                {% else %}
+                                                    ↑
+                                                {% endif %}
                                             {% else %}
                                                 ↑
                                             {% endif %}
@@ -144,7 +286,7 @@
                                     </th>
                                 {% endfor %}
                             </tr>
-                        </thead>
+                        </thead>                        
                         <tbody>
                             {% for row in data %}
                                 <tr>
@@ -156,12 +298,21 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="pagination-container mt-3">
-                    <span>Total Pages: {{ (total // per_page) + 1 }}</span>
-                    <div class="page-navigation">
-                        <button class="btn btn-secondary" onclick="goToPage(page + 1)">Next</button>
-                        <input type="number" min="1" max="{{ (total // per_page) + 1 }}" id="page-input" class="form-control" value="{{ page }}">
-                        <button class="btn btn-primary" onclick="goToPage(document.getElementById('page-input').value)">Go</button>
+                <div class="pagination-container">
+                    <div class="pagination-row mb-3">
+                        <div class="pagination-controls">
+                            <button class="btn btn-secondary btn-prev" onclick="goToPage({{ page - 1 }})">Prev</button>
+                            <button class="btn btn-secondary btn-next" onclick="goToPage({{ page + 1 }})">Next</button>
+                        </div>
+                        <div class="center-pagination-controls">
+                            <label for="page-input" class="mr-1">Page:</label>
+                            <input type="number" min="1" max="{{ (total // per_page) + 1 }}" id="page-input" class="form-control mr-3" value="{{ page }}">
+                            <button class="btn btn-primary" onclick="goToPage(document.getElementById('page-input').value)">Go</button>
+                        </div>
+                        <div class="pagination-info">
+                            <span>Total Pages: {{ (total // per_page) + 1 }}</span>
+                            <span>Rows per Page: {{ current_rows_per_page }}</span>
+                        </div>
                     </div>
                 </div>
             {% else %}
