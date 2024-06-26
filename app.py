@@ -47,6 +47,7 @@ def index():
         sort_order = request.args.get('sort_order', 'asc')
         search_column = request.args.get('search_column', None)
         search_query = request.args.get('search_query', '')
+
         if search_query:
             data_filtered = data[data[search_column].astype(str).str.contains(search_query, case=False, na=False)]
         else:
