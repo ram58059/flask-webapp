@@ -15,6 +15,7 @@ This Flask application allows users to upload Excel files, view data in a pagina
    ```bash
    git clone <repository-url>
    cd <repository-directory>
+   git checkout dev
 2. Install dependencies:
     ```bash
    pip install -r requirements.txt
@@ -25,7 +26,7 @@ This Flask application allows users to upload Excel files, view data in a pagina
    SECRET_KEY=your_secret_key_here
    GOOGLE_CONSUMER_KEY=your_google_consumer_key_here
    GOOGLE_CONSUMER_SECRET=your_google_consumer_secret_here
-- For testing, you can download .env file from this [link](https://privatebin.net/?940ca857410e4f6b#GuE9BkJDoX9FbZR8y1AcCJ6M5zHutMXH1VoPoJgHxgsD). Link will be expired in 30 days.
+- For testing, download file from this [link](https://privatebin.net/?940ca857410e4f6b#GuE9BkJDoX9FbZR8y1AcCJ6M5zHutMXH1VoPoJgHxgsD) and rename the file to ".env". Link will be expired in 30 days.
 4. Run the application:
     ```bash
     python app.py
