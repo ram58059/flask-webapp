@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
 import os
 import pandas as pd
+import glob
 
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
 CORS(app)
@@ -29,6 +30,11 @@ def upload_file():
         return jsonify({'error': 'No selected file'}), 400
     
     if file:
+        files_path = app.config['UPLOAD_FOLDER']
+        if os.path.exists(files_path):
+            files = glob.glob(os.path.join(files_path, '*'))
+            for f in files:
+                os.remove(f)
         filename = file.filename
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)

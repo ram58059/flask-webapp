@@ -109,11 +109,14 @@ function App() {
         setFilename('');
         setData([]);
         setHeaders([]);
+        setCurrentPage(0);
         setTotalRows(0);
         setTotalPages(0);
         setPageNumber(1);
         setSelectedColumn('');
         setSearchQuery('');
+        setSortColumn('');
+        setSortDirection('asc');
         if (fileInputRef.current) {
           fileInputRef.current.value = null; // Reset file input
         }
