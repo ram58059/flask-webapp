@@ -1,0 +1,119 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 150vh;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f7f7f7;
+}
+
+.container {
+  text-align: center;
+  width: 90%; /* Ensuring the container doesn't exceed the screen width */
+}
+
+button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #252425;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #45474B;
+}
+
+button svg {
+  margin-right: 8px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+}
+
+.dropdown {
+  width: 180px; /* Adjusted width for the dropdown */
+  margin-right: 10px; /* Added margin for spacing */
+}
+
+.input-group-append {
+  margin-left: 10px; /* Added margin for spacing */
+}
+
+.sort-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10rem;
+  color: #007bff;
+  padding: 0;
+}
+
+.sort-button:focus {
+  outline: none;
+}
+
+.sort-button:hover {
+  color: #0056b3;
+}
+
+/* Styles for table headers with arrows */
+.table th {
+  position: relative;
+  cursor: pointer;
+  padding-right: 20px; /* Ensure space for the arrow icon */
+}
+
+/* Arrow icon styles */
+.table th .arrow {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  transition: transform 0.3s ease;
+}
+
+/* Up arrow */
+.table th .arrow.up {
+  border-bottom: 6px solid #000; /* Black arrow pointing up */
+}
+
+/* Down arrow */
+.table th .arrow.down {
+  border-top: 6px solid #000; /* Black arrow pointing down */
+}
+
+.react-resizable-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
+}
+
+.react-resizable-handle:hover {
+  background-color: #ddd;
+}
+
+/* Table container to ensure scrolling */
+.table-container {
+  overflow-x: auto;
+}
